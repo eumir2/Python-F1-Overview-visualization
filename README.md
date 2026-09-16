@@ -2,6 +2,15 @@
 
 Overlay desktop trasparente per visualizzare il tracciato e la posizione delle monoposto di una sessione di Formula 1. L'applicazione usa [OpenF1](https://openf1.org) come sorgente dati e non richiede una API key.
 
+## Versioni del progetto
+
+Questo repository contiene due versioni coesistenti dello stesso progetto:
+
+- `f1_overlay_qt.py`: versione legacy/monolitica, dove la logica dell'applicazione e' concentrata in un unico file.
+- `main.py` + `data.py` + `worker.py` + `widgets.py`: versione modulare, organizzata in file dedicati per dati, UI e richieste HTTP.
+
+La versione modulare e' quella piu' strutturata e rappresenta l'evoluzione del progetto; la versione standalone e' conservata come riferimento storico / prototipo iniziale.
+
 ## Funzionalita'
 
 - Replay di una gara storica con play/pausa e velocita' 1x, 5x, 20x o 50x.
@@ -9,9 +18,11 @@ Overlay desktop trasparente per visualizzare il tracciato e la posizione delle m
 - Modalita' Live con polling incrementale dei dati di posizione, giri e classifica.
 - Tracciato con scia delle auto e colori distinti per pilota/team.
 - Colorazione approssimata dei settori S1, S2 e S3 quando i dati disponibili lo permettono.
-- Classifica opzionale con posizione, ultimo giro e tempi dei settori.
+- Classifica opzionale con posizione, ultimo giro, tempi dei settori e gap live lungo il tracciato.
 - Confronto dei tempi con il pilota immediatamente davanti: verde se migliore, giallo se peggiore.
+- Gap live colorato in base al trend: verde se si riduce, giallo se aumenta.
 - Telecamera dinamica con inseguimento di un pilota e zoom 2x, 4x o 8x.
+- Personalizzazione del tema visivo: colori del tracciato, settori, testo e opacita' pannelli.
 - Finestra sempre in primo piano, senza bordi nativi e ridimensionabile.
 
 ## Requisiti
@@ -42,7 +53,13 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 
 ## Avvio
 
-Con l'ambiente virtuale attivo:
+La versione consigliata e' la modulare:
+
+```powershell
+python .\main.py
+```
+
+La versione legacy monolitica e' ancora presente per confronto o riferimento:
 
 ```powershell
 python .\f1_overlay_qt.py
@@ -76,6 +93,7 @@ La modalita' Live aggiorna i dati ogni tre secondi circa. I rate limit HTTP 429 
 - Il menu del pilota abilita l'inseguimento della sua auto.
 - Il menu dello zoom diventa disponibile quando e' selezionato un pilota.
 - Il pulsante con la bandiera mostra o nasconde la classifica.
+- Il pulsante con l'ingranaggio apre il pannello delle impostazioni visive.
 - La casella `settori` abilita i colori di confronto per S1, S2 e S3.
 - La barra superiore permette di trascinare la finestra.
 - La maniglia nell'angolo inferiore destro permette di ridimensionarla.
@@ -101,14 +119,20 @@ OpenF1 restituisce `404` quando non ci sono risultati e `422` quando una richies
 
 ## Struttura del codice
 
-Il progetto e' volutamente contenuto in un solo file:
+Il progetto e' organizzato in moduli dedicati nella versione modulare:
 
+- `main.py`: entry point dell'applicazione e coordinamento dei componenti principali.
+- `data.py`: modello dati, tema, calcoli di distanza/tracciato e logica di sessione.
+- `worker.py`: richieste HTTP verso OpenF1, polling live e rate limiter adattivo.
+- `widgets.py`: componenti Qt per tracciato, pannello classifica, impostazioni e barra titolo.
 - `SessionData`: conserva dati, coordinate, tempi e classifica della sessione.
 - `DriverTrack`: gestisce campioni, interpolazione e scia di un pilota.
-- `Worker`: esegue le richieste di rete fuori dal thread della UI.
 - `TrackWidget`: disegna tracciato, settori, auto e camera dinamica.
 - `StandingsPanel`: visualizza la classifica compatta.
+- `SettingsPanel`: permette la personalizzazione del tema a runtime.
 - `TitleBar` e `MainWindow`: gestiscono controlli, layout e ciclo di vita dell'applicazione.
+
+La versione `f1_overlay_qt.py` mantiene invece il medesimo comportamento ma con tutti i concetti contenuti in un unico file.
 
 ## Limiti noti
 
@@ -120,10 +144,10 @@ Il progetto e' volutamente contenuto in un solo file:
 
 ## Verifica rapida
 
-Per controllare la sintassi senza avviare la GUI:
+Per controllare la sintassi senza avviare la GUI, puoi verificare il modulo principale:
 
 ```powershell
-python -m py_compile .\f1_overlay_qt.py
+python -m py_compile .\main.py
 ```
 
 Per verificare che le dipendenze siano installate:
