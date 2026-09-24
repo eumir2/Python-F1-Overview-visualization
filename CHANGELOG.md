@@ -28,7 +28,9 @@ Tutte le modifiche rilevanti di questo progetto sono documentate qui.
 - Controlli UI per la gestione del playback, camera e zoom.
 
 ### Note
-- Il progetto usa OpenF1 come sorgente dati pubblica e non richiede API key.
+- OpenF1 restituisce attualmente `401 Unauthorized` sia per le richieste storiche sia per quelle live; il progetto non implementa ancora il flusso OAuth2.
+- Il README documenta lo stato corrente dell'accesso OpenF1 e i limiti della modalita' storico/live.
+- I file Python generati, inclusa la cartella `__pycache__/`, sono esclusi da Git.
 - Sono presenti due versioni del progetto: una legacy monolitica in `f1_overlay_qt.py` e una modulare in `main.py`, `data.py`, `worker.py` e `widgets.py`.
 - La versione modulare e' la struttura attuale piu' organizzata e manutenibile; la versione monolitica e' mantenuta come riferimento storico.
 - Non sono ancora presenti test automatici.

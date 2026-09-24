@@ -1,6 +1,15 @@
 # F1 Overlay Qt
 
-Overlay desktop trasparente per visualizzare il tracciato e la posizione delle monoposto di una sessione di Formula 1. L'applicazione usa [OpenF1](https://openf1.org) come sorgente dati e non richiede una API key.
+Overlay desktop trasparente per visualizzare il tracciato e la posizione delle monoposto di una sessione di Formula 1. L'applicazione usa [OpenF1](https://openf1.org) come sorgente dati.
+
+> **Stato dell'API OpenF1 (24 settembre 2026):** al momento l'API restituisce
+> `401 Unauthorized` anche per le richieste di sessioni storiche, non solo per
+> quelle live. Di conseguenza, in questo momento nell'applicazione non
+> funzionano né la modalità **Storico** né la modalità **Live**. La
+> documentazione OpenF1 indica ancora lo storico come accessibile senza
+> autenticazione, ma il comportamento del servizio non corrisponde a quella
+> indicazione. Non è quindi un problema specifico degli URL costruiti
+> dall'applicazione.
 
 ## Versioni del progetto
 
@@ -29,7 +38,8 @@ La versione modulare e' quella piu' strutturata e rappresenta l'evoluzione del p
 
 - Windows, macOS o Linux.
 - Python 3.10 o superiore consigliato.
-- Connessione Internet per raggiungere l'API OpenF1.
+- Connessione Internet per raggiungere l'API OpenF1 (il servizio attualmente
+  risponde `401 Unauthorized` anche alle richieste storiche).
 - Dipendenze Python:
   - `PySide6`
   - `requests`
@@ -65,7 +75,10 @@ La versione legacy monolitica e' ancora presente per confronto o riferimento:
 python .\f1_overlay_qt.py
 ```
 
-All'avvio l'applicazione carica automaticamente una sessione Race storica disponibile del 2023. Il caricamento avviene in un thread separato per non bloccare l'interfaccia.
+All'avvio l'applicazione prova a caricare automaticamente una sessione Race
+storica disponibile del 2023. Il caricamento avviene in un thread separato per
+non bloccare l'interfaccia. Con lo stato attuale dell'API OpenF1, la richiesta
+fallisce con `401 Unauthorized`.
 
 ## Utilizzo
 
@@ -78,7 +91,9 @@ All'avvio l'applicazione carica automaticamente una sessione Race storica dispon
 5. Usare `Play` per avviare o mettere in pausa il replay.
 6. Selezionare la velocita' desiderata.
 
-Se la `session_key` e' vuota, viene usata l'ultima gara disponibile del 2023. Per trovare una chiave di sessione consultare gli endpoint OpenF1 `/sessions` oppure la documentazione del servizio.
+Se la `session_key` e' vuota, viene usata l'ultima gara disponibile del 2023.
+Attualmente anche questa ricerca fallisce con `401 Unauthorized`; inserire una
+chiave storica numerica non evita il problema.
 
 ### Modalita' Live
 
@@ -86,7 +101,10 @@ Se la `session_key` e' vuota, viene usata l'ultima gara disponibile del 2023. Pe
 2. Lasciare vuoto il campo `session_key` per usare la sessione piu' recente, oppure inserire una chiave specifica.
 3. Premere `Carica`.
 
-La modalita' Live aggiorna i dati ogni tre secondi circa. I rate limit HTTP 429 vengono gestiti con backoff esponenziale e il polling riprende automaticamente dopo errori temporanei di rete.
+La modalita' Live aggiorna i dati ogni tre secondi circa. I rate limit HTTP
+429 vengono gestiti con backoff esponenziale e il polling riprende
+automaticamente dopo errori temporanei di rete. Attualmente la modalità Live
+richiede autenticazione OpenF1 e non è disponibile senza credenziali valide.
 
 ### Controlli aggiuntivi
 
@@ -115,7 +133,12 @@ Le richieste storiche a `location`, `laps` e `position` vengono suddivise in blo
 - i giri e la classifica vengono scaricati in blocchi da 25 minuti;
 - la ricerca iniziale dei giri richiesti e' limitata a 45 minuti per motivi di sicurezza.
 
-OpenF1 restituisce `404` quando non ci sono risultati e `422` quando una richiesta e' troppo ampia. Il primo caso viene trattato come lista vuota; il secondo viene mostrato come errore esplicito. Gli errori di rete e i rate limit `429` vengono ritentati automaticamente.
+OpenF1 restituisce `404` quando non ci sono risultati e `422` quando una richiesta
+e' troppo ampia. Il primo caso viene trattato come lista vuota; il secondo viene
+mostrato come errore esplicito. Gli errori di rete e i rate limit `429` vengono
+ritentati automaticamente. Attualmente il servizio restituisce anche `401`
+(`Unauthorized`) per le richieste storiche e live. Il progetto non implementa
+ancora il flusso OAuth2 necessario per ottenere un token OpenF1 autenticato.
 
 ## Struttura del codice
 
